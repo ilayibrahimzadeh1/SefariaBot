@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Rabbi | Torah Learning Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3949ab;
+            --secondary-color: #1a237e;
+            --accent-color: #ff9800;
+            --text-color: #212121;
+            --light-text: #757575;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --sidebar-color: #eceff1;
+            --hover-color: #e8eaf6;
+            --border-color: #e0e0e0;
+            --user-bubble: #e3f2fd;
+            --rabbi-bubble: #f1f8e9;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-color);
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .app-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .new-chat-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .conversation-history {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .history-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .history-item i {
+            margin-right: 10px;
+            font-size: 0.8rem;
+        }
+
+        .active-conversation {
+            background-color: var(--hover-color);
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .rabbi-select {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .rabbi-select h3 {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            margin-bottom: 10px;
+        }
+
+        .rabbi-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .rabbi-option:hover {
+            background-color: var(--hover-color);
+        }
+
+        .rabbi-option img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        .rabbi-option.active {
+            background-color: var(--hover-color);
+            font-weight: 500;
+        }
+
+        /* Main Chat Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background-color: var(--card-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .current-rabbi {
+            display: flex;
+            align-items: center;
+        }
+
+        .current-rabbi img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        .rabbi-info h2 {
+            font-size: 1.1rem;
+            margin-bottom: 2px;
+        }
+
+        .rabbi-info p {
+            font-size: 0.8rem;
+            color: var(--light-text);
+        }
+
+        .header-actions button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--light-text);
+            cursor: pointer;
+            margin-left: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .header-actions button:hover {
+            color: var(--primary-color);
+        }
+
+        /* Chat Messages Container */
+        .chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: var(--card-color);
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            max-width: 85%;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            background-color: var(--accent-color);
+        }
+
+        .rabbi-avatar {
+            background-color: var(--primary-color);
+        }
+
+        .message-content {
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .user-message {
+            margin-left: auto;
+        }
+
+        .user-message .message-content {
+            background-color: var(--user-bubble);
+            border-top-right-radius: 0;
+        }
+
+        .bot-message .message-content {
+            background-color: var(--rabbi-bubble);
+            border-top-left-radius: 0;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--light-text);
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        /* References Panel */
+        .references-panel {
+            width: 0;
+            overflow: hidden;
+            transition: width 0.3s ease;
+            background-color: var(--sidebar-color);
+            border-left: 1px solid var(--border-color);
+        }
+
+        .references-panel.active {
+            width: 300px;
+        }
+
+        .references-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .references-header h3 {
+            font-size: 1rem;
+        }
+
+        .close-references {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--light-text);
+        }
+
+        .references-content {
+            padding: 15px;
+            overflow-y: auto;
+            height: calc(100% - 51px);
+        }
+
+        .reference-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .reference-item h4 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .reference-item p {
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .reference-source {
+            font-size: 0.75rem;
+            color: var(--light-text);
+            margin-top: 5px;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 15px 20px;
+            background-color: var(--card-color);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+
+        #message-form {
+            display: flex;
+            width: 100%;
+            background-color: var(--background-color);
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        #message-input {
+            flex: 1;
+            border: none;
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            background: transparent;
+            outline: none;
+        }
+
+        .input-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-actions button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            padding: 0 10px;
+            color: var(--light-text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .input-actions button:hover {
+            color: var(--primary-color);
+        }
+
+        .send-btn {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            background-color: var(--secondary-color) !important;
+        }
+
+        /* Loading Indicator */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-dots {
+            display: flex;
+            margin-left: 65px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            margin: 0 1px;
+            background-color: var(--light-text);
+            border-radius: 50%;
+            animation: typing-dot 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing-dot {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: -300px;
+                z-index: 100;
+                height: 100%;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .references-panel.active {
+                position: fixed;
+                right: 0;
+                z-index: 100;
+                height: 100%;
+            }
+
+            .mobile-menu-btn {
+                display: block !important;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            height: 100%;
+        }
+
+        .welcome-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .welcome-screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .welcome-screen p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            color: var(--light-text);
+            line-height: 1.6;
+        }
+
+        .rabbi-cards {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .rabbi-card {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            width: 160px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .rabbi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .rabbi-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            object-fit: cover;
+        }
+
+        .rabbi-card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rabbi-card p {
+            font-size: 0.8rem;
+            color: var(--light-text);
+        }
+
+        .example-questions {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            box-shadow: var(--shadow);
+            width: 100%;
+        }
+
+        .example-questions h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .question-pill {
+            display: inline-block;
+            background-color: var(--hover-color);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            margin: 0.3rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .question-pill:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Status message */
+        #status {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 15px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        #status.active {
+            opacity: 1;
+        }
+
+        /* Reference tooltips */
+        .reference-tooltip {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .reference-tooltip span {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .tooltip-content {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            box-shadow: var(--shadow);
+            padding: 10px;
+            border-radius: 5px;
+            width: 200px;
+            font-size: 0.8rem;
+            display: none;
+            z-index: 10;
+        }
+
+        .reference-tooltip:hover .tooltip-content {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar / Rabbi selection -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-torah"></i>
+            </div>
+            <h1 class="app-name">AI Rabbi</h1>
+        </div>
+        <button class="new-chat-btn">
+            <i class="fas fa-plus"></i> New Conversation
+        </button>
+        <div class="conversation-history">
+            <div class="history-item active-conversation">
+                <i class="fas fa-comment"></i>
+                <span>Current Conversation</span>
+            </div>
+            <!-- More history items would appear here -->
+        </div>
+        <div class="rabbi-select">
+            <h3>SELECT A RABBI</h3>
+            <div class="rabbi-option" data-rabbi="Rashi">
+                <img src="rashi ai.png'" alt="Rashi">
+                <div>
+                    <div>Rashi</div>
+                    <small>11th century France</small>
+                </div>
+            </div>
+            <div class="rabbi-option" data-rabbi="Rambam">
+                <img src="ramban.png" alt="Rambam">
+                <div>
+                    <div>Rambam</div>
+                    <small>12th century Spain/Egypt</small>
+                </div>
+            </div>
+            <div class="rabbi-option" data-rabbi="Rabbi Yosef Karo">
+                <img src="rabbi yosef caro.png" alt="Rabbi Yosef Karo">
+                <div>
+                    <div>Rabbi Yosef Karo</div>
+                    <small>15th century Israel</small>
+                </div>
+            </div>
+            <div class="rabbi-option" data-rabbi="The Baal Shem Tov">
+                <img src="baal shem tov.png" alt="The Baal Shem Tov">
+                <div>
+                    <div>The Baal Shem Tov</div>
+                    <small>Mid-18th century sage</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content area -->
+    <div class="main-content">
+        <div class="chat-header">
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="current-rabbi">
+                <img id="current-rabbi-img" src="/api/placeholder/35/35" alt="Current Rabbi">
+                <div class="rabbi-info">
+                    <h2 id="current-rabbi-name">Choose a Rabbi</h2>
+                    <p id="current-rabbi-era">Select from the sidebar</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="toggle-references">
+                    <i class="fas fa-book"></i>
+                </button>
+                <button>
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat messages container -->
+        <div class="chat-container" id="chat-container">
+            <!-- Welcome screen shows initially -->
+            <div class="welcome-screen" id="welcome-screen">
+                <div class="welcome-icon">
+                    <i class="fas fa-torah"></i>
+                </div>
+                <h1>Welcome to AI Rabbi</h1>
+                <p>Choose a rabbi to begin your Torah learning journey. Each rabbi brings their unique perspective and teaching style.</p>
+                
+                <div class="rabbi-cards">
+                    <div class="rabbi-card" data-rabbi="Rashi">
+                        <img src="rashi ai.png" alt="Rashi">
+                        <h3>Rashi</h3>
+                        <p>Clear, concise commentator</p>
+                    </div>
+                    <div class="rabbi-card" data-rabbi="Rambam">
+                        <img src="ramban.png" alt="Rambam">
+                        <h3>Rambam</h3>
+                        <p>Rational philosopher</p>
+                    </div>
+                    <div class="rabbi-card" data-rabbi="Rabbi Yosef Karo">
+                        <img src="rabbi yosef caro.png" alt="Rabbi Yosef Karo">
+                        <h3>Rabbi Yosef Karo</h3>
+                        <p>Mystical commentator</p>
+                    </div>
+                    <div class="rabbi-card" data-rabbi="The Baal Shem Tov">
+                        <img src="baal shem tov.png" alt="The Baal Shem Tov">
+                        <h3>The Baal Shem Tov</h3>
+                        <p>Spiritual leader and teacher</p>
+                    </div>
+                </div>
+
+                <div class="example-questions">
+                    <h3>Try asking about:</h3>
+                    <div class="question-pill">Genesis 1:1</div>
+                    <div class="question-pill">The meaning of Shabbat</div>
+                    <div class="question-pill">Exodus 20:1-2</div>
+                    <div class="question-pill">Jewish views on charity</div>
+                    <div class="question-pill">Deuteronomy 6:4-5</div>
+                </div>
+            </div>
+
+            <!-- Typing indicator -->
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="message-avatar rabbi-avatar">
+                    <i class="fas fa-star-of-david"></i>
+                </div>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Input area -->
+        <div class="input-area">
+            <form id="message-form">
+                <input type="text" id="message-input" placeholder="Ask your question..." autocomplete="off">
+                <div class="input-actions">
+                    <button type="button" title="Upload file">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button type="submit" class="send-btn" title="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- References panel (hidden by default) -->
+    <div class="references-panel" id="references-panel">
+        <div class="references-header">
+            <h3>Sefaria References</h3>
+            <button class="close-references">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="references-content">
+            <div class="reference-item">
+                <h4>Genesis 1:1</h4>
+                <p>In the beginning God created the heaven and the earth.</p>
+                <div class="reference-source">Source: Sefaria.org</div>
+            </div>
+            <!-- More reference items would appear here -->
+        </div>
+    </div>
+
+    <!-- Mobile overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Status message -->
+    <div id="status"></div>
+
+    <script>
+        // Global variables
+        let sessionId = null;
+        let currentRabbi = null;
+        let references = [];
+
+        // DOM elements
+        const chatContainer = document.getElementById('chat-container');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const statusDiv = document.getElementById('status');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const currentRabbiImg = document.getElementById('current-rabbi-img');
+        const currentRabbiName = document.getElementById('current-rabbi-name');
+        const currentRabbiEra = document.getElementById('current-rabbi-era');
+        const referencesPanel = document.getElementById('references-panel');
+        const overlay = document.getElementById('overlay');
+
+        // Rabbi info for UI
+        const rabbiInfo = {
+            'Rashi': {
+                name: 'Rashi',
+                era: '11th century France',
+                description: 'Clear, concise commentator'
+            },
+            'Rambam': {
+                name: 'Rambam',
+                era: '12th century Spain/Egypt',
+                description: 'Rational philosopher'
+            },
+            'Rabbi Yosef Karo': {
+                name: 'Rabbi Yosef Karo',
+                era: '15th century Israel',
+                description: 'Mystical commentator'
+            },
+            'The Baal Shem Tov': {
+                name: 'The Baal Shem Tov',
+                era: 'Mid-18th century Poland',
+                description: 'Spiritual leader and teacher'
+            }
+        };
+
+        // Test if server is running
+        fetch('/api/test')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server status:', data);
+                showStatus('Server connected', 'success');
+            })
+            .catch(error => {
+                console.error('Server test failed:', error);
+                showStatus('Server not connected. Please check the console for errors.', 'error');
+            });
+
+        // Function to show status message
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = 'active';
+            if (type === 'error') statusDiv.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
+            if (type === 'success') statusDiv.style.backgroundColor = 'rgba(40, 167, 69, 0.9)';
+            
+            setTimeout(() => {
+                statusDiv.className = '';
+            }, 3000);
+        }
+
+        // Function to add a message to the chat
+        function addMessage(content, isUser) {
+            // Hide welcome screen if visible
+            if (welcomeScreen.style.display !== 'none') {
+                welcomeScreen.style.display = 'none';
+            }
+
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+
+            // Create message avatar
+            const avatarElement = document.createElement('div');
+            avatarElement.classList.add('message-avatar');
+            avatarElement.classList.add(isUser ? 'user-avatar' : 'rabbi-avatar');
+            
+            // Set avatar icon
+            const iconElement = document.createElement('i');
+            iconElement.className = isUser ? 'fas fa-user' : 'fas fa-star-of-david';
+            avatarElement.appendChild(iconElement);
+
+            // Create message content
+            const contentElement = document.createElement('div');
+            contentElement.classList.add('message-content');
+            
+            // Process content to highlight references
+            let processedContent = content;
+            if (!isUser) {
+                // Simple regex to highlight biblical references
+                processedContent = content.replace(
+                    /(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Psalms|Proverbs)\s+(\d+):(\d+)(-\d+)?/g,
+                    '<span class="reference-tooltip"><span>$1 $2:$3$4</span><div class="tooltip-content">Click to view in Sefaria</div></span>'
+                );
+            }
+            
+            contentElement.innerHTML = processedContent;
+
+            // Add time
+            const timeElement = document.createElement('div');
+            timeElement.classList.add('message-time');
+            const now = new Date();
+            timeElement.textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            contentElement.appendChild(timeElement);
+
+            // Assemble the message
+            if (!isUser) {
+                messageElement.appendChild(avatarElement);
+                messageElement.appendChild(contentElement);
+            } else {
+                messageElement.appendChild(contentElement);
+                messageElement.appendChild(avatarElement);
+            }
+
+            chatContainer.appendChild(messageElement);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Add event listeners to reference tooltips
+            if (!isUser) {
+                const tooltips = contentElement.querySelectorAll('.reference-tooltip');
+                tooltips.forEach(tooltip => {
+                    tooltip.addEventListener('click', function() {
+                        const reference = this.querySelector('span').textContent;
+                        window.open(`https://www.sefaria.org/${reference.replace(/\s+/g, '_')}`, '_blank');
+                    });
+                });
+            }
+        }
+
+        // Function to set the current rabbi
+        function setCurrentRabbi(rabbi) {
+            if (!rabbiInfo[rabbi]) return;
+            
+            currentRabbi = rabbi;
+            currentRabbiName.textContent = rabbiInfo[rabbi].name;
+            currentRabbiEra.textContent = rabbiInfo[rabbi].era;
+
+            // Update sidebar highlight
+            document.querySelectorAll('.rabbi-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.rabbi === rabbi) {
+                    option.classList.add('active');
+                }
+            });
+
+            // Show welcome message from the rabbi
+            addMessage(`Shalom! I am ${rabbi}. How may I assist you with your Torah learning today?`, false);
+        }
+
+        // Function to show typing indicator
+        function showTypingIndicator(show) {
+            typingIndicator.classList.toggle('active', show);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Event listener for rabbi selection
+        document.querySelectorAll('.rabbi-option, .rabbi-card').forEach(element => {
+            element.addEventListener('click', function() {
+                const rabbi = this.dataset.rabbi;
+                
+                // If already selected, do nothing
+                if (currentRabbi === rabbi) return;
+                
+                sessionId = null; // Reset session for new rabbi
+                setCurrentRabbi(rabbi);
+            });
+        });
+
+        // Event listener for message form submission
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Check if rabbi is selected
+            if (!currentRabbi) {
+                showStatus('Please select a Rabbi first', 'error');
+                return;
+            }
+
+            // Add user message to chat
+            addMessage(message, true);
+            messageInput.value = '';
+            
+            // Disable input while processing
+            messageInput.disabled = true;
+            document.querySelector('.send-btn').disabled = true;
+            showTypingIndicator(true);
+
+            try {
+                // Send message to backend
+                console.log('Sending message to server:', message);
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, sessionId })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Server response:', data);
+
+                // Hide typing indicator
+                showTypingIndicator(false);
+
+                // Update session ID if it's not set
+                if (!sessionId) {
+                    sessionId = data.sessionId;
+                    console.log('Session ID set:', sessionId);
+                }
+
+                // Add bot message to chat
+                addMessage(data.message, false);
+            } catch (error) {
+                console.error('Error:', error);
+                showTypingIndicator(false);
+                addMessage('Sorry, there was an error processing your message. Please try again.', false);
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                document.querySelector('.send-btn').disabled = false;
+                messageInput.focus();
+            }
+        });
+
+        // Example question pills
+        document.querySelectorAll('.question-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                messageInput.value = this.textContent;
+                messageInput.focus();
+            });
+        });
+
+        // Toggle references panel
+        document.getElementById('toggle-references').addEventListener('click', function() {
+            referencesPanel.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+
+        // Close references panel
+        document.querySelector('.close-references').addEventListener('click', function() {
+            referencesPanel.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+
+        // Close mobile menus when clicking overlay
+        overlay.addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.remove('active');
+            referencesPanel.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        // New chat button
+        document.querySelector('.new-chat-btn').addEventListener('click', function() {
+            // Reset the conversation
+            sessionId = null;
+            
+            // Clear the chat except for the welcome screen
+            while (chatContainer.firstChild) {
+                chatContainer.removeChild(chatContainer.firstChild);
+            }
+            
+            // Show welcome screen
+            welcomeScreen.style.display = 'flex';
+            
+            // Reset rabbi selection if one was chosen
+            if (currentRabbi) {
+                const rabbiMessage = `Shalom! I am ${currentRabbi}. How may I assist you with your Torah learning today?`;
+                addMessage(rabbiMessage, false);
+            }
+        });
+    </script>
+</body>
+</html>
